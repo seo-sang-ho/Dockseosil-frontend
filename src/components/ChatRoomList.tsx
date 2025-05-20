@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 interface ChatRoom {
   id: string;
@@ -9,10 +10,11 @@ const ChatRoomList: React.FC = () => {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
 
   useEffect(() => {
-    fetch('/api/chat/room/list')
-      .then((res) => res.json())
-      .then((data) => setRooms(data))
-      .catch((err) => console.error('에러:', err));
+    axios.get<ChatRoom[]>('/api/chat/room/list')
+      .then((res) => setRooms(res.data)) // ✅ res.data에 바로 JSON 데이터 들어있음
+      .catch((err) => {
+        console.error('채팅방 목록 가져오기 실패:', err);
+      });
   }, []);
 
   return (
