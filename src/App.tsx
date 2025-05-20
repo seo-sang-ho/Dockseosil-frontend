@@ -1,11 +1,20 @@
+// src/App.tsx
 import React from 'react';
-import ChatRoomList from './components/ChatRoomList'; // ✅ default import
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ChatRoomList from './components/ChatRoomList';
+import ChatRoomById from './components/ChatRoomById';
 
 function App() {
   return (
-    <div>
-      <ChatRoomList />
-    </div>
+    <Router>
+      <Routes>
+        {/* 채팅방 목록 */}
+        <Route path="/" element={<ChatRoomList />} />
+        
+        {/* 채팅방 상세 정보 */}
+        <Route path="/chatroom/:roomId" element={<ChatRoomById />} />
+      </Routes>
+    </Router>
   );
 }
 
