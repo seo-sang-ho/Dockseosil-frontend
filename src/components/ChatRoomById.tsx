@@ -1,6 +1,5 @@
-// src/components/ChatRoomDetail.tsx
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState, FormEvent } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
 interface ChatRoom {
@@ -10,10 +9,20 @@ interface ChatRoom {
   modifyDate: string;
 }
 
+interface Message {
+  writerName: string;
+  content: string;
+}
+
 const ChatRoomDetail: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const [room, setRoom] = useState<ChatRoom | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // form state
+  const [writerName, setWriterName] = useState('');
+  const [content, setContent] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]); // 채팅 내용 저장용
 
   useEffect(() => {
     axios.get<ChatRoom>(`/api/chat/room/${roomId}`)
@@ -27,21 +36,62 @@ const ChatRoomDetail: React.FC = () => {
       });
   }, [roomId]);
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!writerName || !content) return;
 
-  if (!room) {
-    return <div>로딩 중...</div>;
-  }
+    // 메시지 추가 (임시, 백엔드 연동 시 axios.post 사용)
+    setMessages([...messages, { writerName, content }]);
+    setWriterName('');
+    setContent('');
+  };
+
+  if (error) return <div>{error}</div>;
+  if (!room) return <div>로딩 중...</div>;
 
   return (
-    <div>
-      <h2>채팅방 상세 정보</h2>
-      <p><strong>ID:</strong> {room.id}</p>
-      <p><strong>이름:</strong> {room.name}</p>
-      <p><strong>생성일:</strong> {room.createDate}</p>
-      <p><strong>수정일:</strong> {room.modifyDate}</p>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold">{room.id}번 채팅방</h1>
+
+      <nav className="my-4 space-x-4">
+        <Link to="/chat/room/make" className="text-blue-600 underline">채팅방 생성</Link>
+        <Link to="/" className="text-blue-600 underline">채팅방 목록</Link>
+      </nav>
+
+      <form onSubmit={handleSubmit} className="space-x-2 mb-4">
+        <input
+          type="text"
+          name="writerName"
+          placeholder="작성자 명"
+          value={writerName}
+          onChange={(e) => setWriterName(e.target.value)}
+          className="border px-2 py-1"
+        />
+        <input
+          type="text"
+          name="content"
+          placeholder="내용"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="border px-2 py-1"
+        />
+        <button type="submit" className="bg-blue-500 text-white px-3 py-1 rounded">작성</button>
+      </form>
+
+      <div className="bg-gray-100 p-2 rounded">
+        <h3 className="font-semibold">채팅 내용</h3>
+        {messages.length === 0 ? (
+          <p className="text-gray-500">작성된 메시지가 없습니다.</p>
+        ) : (
+          <ul className="mt-2 space-y-1">
+            {messages.map((msg, idx) => (
+              <li key={idx} className="text-sm">
+                <strong>{msg.writerName}:</strong> {msg.content}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
